@@ -1,51 +1,15 @@
-"""
-Model inference layer.
 
-THIS IS THE ONLY FILE THE AI TEAM NEEDS TO EDIT.
-Everything else in the backend (main.py, schemas, equipment lookup)
-is already built against the contract defined by `predict()` below.
-
------------------------------------------------------------------
-INTEGRATION CONTRACT
------------------------------------------------------------------
-predict(image_bytes: bytes) -> Prediction
-
-Where Prediction has:
-    - class_name: str   -> must exactly match one of the 13 keys
-                            in app/mock_data.py (case-insensitive
-                            matching is handled for you in utils.py,
-                            but the class list must match).
-    - confidence: float -> a value between 0.0 and 1.0
-
------------------------------------------------------------------
-WHEN THE REAL MODEL IS READY:
------------------------------------------------------------------
-1. Load your YOLO/TensorFlow weights once, at module import time
-   (not inside predict(), so it doesn't reload on every request).
-2. Replace the body of predict() with a real call to your model.
-3. Return a Prediction with the top class name + its confidence.
-4. Leave everything else in the backend untouched — main.py already
-   knows how to handle whatever predict() returns.
-
-Example for a YOLOv8 classification model (uncomment and adapt):
-
-    from ultralytics import YOLO
-    import numpy as np
-    import cv2
-
-    _model = YOLO("weights/best.pt")  # loaded once at import
-
-    def predict(image_bytes: bytes) -> "Prediction":
-        np_arr = np.frombuffer(image_bytes, np.uint8)
-        img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-        results = _model(img)
-        top = results[0].probs.top1
-        confidence = float(results[0].probs.top1conf)
-        class_name = _model.names[top]
-        return Prediction(class_name=class_name, confidence=confidence)
-"""
 
 from dataclasses import dataclass
+import tempfile
+import os
+from ultralytics import YOLO
+
+# Load the model once at import time (not inside predict(), so it
+# doesn't reload on every request). Path is relative to this file's
+# location, so it works on any machine regardless of who runs it.
+_MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "model", "best.pt")
+_model = YOLO(_MODEL_PATH)
 
 
 @dataclass
@@ -55,12 +19,24 @@ class Prediction:
 
 
 def predict(image_bytes: bytes) -> Prediction:
-    """
-    MOCK IMPLEMENTATION — replace this function body once the real
-    model is ready. Everything downstream (main.py) already expects
-    exactly this return type, so no other file needs to change.
-    """
-    # Placeholder: always returns the same class with high confidence.
-    # This lets the rest of the team build and test against a
-    # predictable response while the real model is being trained.
-    return Prediction(class_name="Lat Pull Down", confidence=0.94)
+    # The model expects a file path, but we receive raw image bytes
+    # from the upload -- so we write them to a temporary file first.
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp:
+        tmp.write(image_bytes)
+        tmp_path = tmp.name
+
+    try:
+        results = _model(tmp_path)
+
+        if len(results[0].boxes) > 0:
+            box = results[0].boxes[0]
+            class_id = int(box.cls[0])
+            confidence = float(box.conf[0])
+            equipment_name = results[0].names[class_id]
+            return Prediction(class_name=equipment_name, confidence=confidence)
+        else:
+            # No equipment detected -- return 0 confidence so main.py's
+            # existing low-confidence handling kicks in automatically.
+            return Prediction(class_name="Unknown", confidence=0.0)
+    finally:
+        os.remove(tmp_path)  # clean up the temp file either way
