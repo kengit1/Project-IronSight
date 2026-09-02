@@ -1,0 +1,24 @@
+names:
+- Chest Press machine
+- Lat Pull Down
+- Seated Cable Rows
+- arm curl machine
+- chest fly machine
+- chinning dipping
+- lateral raises machine
+- leg extension
+- leg press
+- reg curl machine
+- seated dip machine
+- shoulder press machine
+- smith machine
+nc: 13
+roboflow:
+  license: CC BY 4.0
+  project: gym-equipment-object-detection-dbwyy
+  url: https://universe.roboflow.com/akrm-saad-m-d/gym-equipment-object-detection-dbwyy/dataset/1
+  version: 1
+  workspace: akrm-saad-m-d
+test: ../test/images
+train: ../train/images
+val: ../valid/images
