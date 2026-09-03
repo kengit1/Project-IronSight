@@ -42,6 +42,7 @@ import os
 # rubber class to test a streamlit-like uploaded file 
 # the uploaded file will be an image stored in ram , so that is_valid_imag can access its size 
 # 
+'''
 class DummyStreamlitFile:
     def __init__(self, file_path):
         self.name = os.path.basename(file_path)
@@ -56,3 +57,4 @@ class DummyStreamlitFile:
 # actual test 
 test_file = DummyStreamlitFile("test.webp")
 print(process_upload(test_file))
+'''
