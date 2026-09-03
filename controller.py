@@ -16,26 +16,46 @@ def process_upload(uploaded_file):
             , "message": f"Image above the standard size :{config.MAX_FILE_SIZE_MB}"
         }
 
-    # activate model
-    ai_result = predict(uploaded_file= uploaded_file)
+   # activate model as dict with 2 models in it 
+    ai_result = predict(uploaded_file=uploaded_file)
 
-    # aggregate data 
-    if ai_result["error"] or ai_result["confidence"] < config.MIN_CONFIDENCE_THRESHOLD:
+    # 
+    if ai_result.get("error"):
         return {
             "status": "low_confidence",
-            "message": "Image not clear , try another one",
-            "confidence" : ai_result["confidence"] ,
-            "data": config.FALLBACK_INFO
+            "message": "No equipment detected by any model. Image might not be clear.",
+            "data": [config.FALLBACK_INFO] # خليناها List عشان الـ UI يتوقع دايماً List
         }
 
-    # get actual data
-    equipment_info = get_equipment_info(ai_result["equipment_name"])
+    valid_results = []
+    
+    # if there is results
+    for res in ai_result.get("models_results", []):
+        if res["confidence"] >= config.MIN_CONFIDENCE_THRESHOLD:
+            # get the prediects of each 
+            equipment_info = get_equipment_info(res["equipment_name"])
+            
+            # model with its prediction
+            valid_results.append({
+                "model_name": res["model"],
+                "confidence": res["confidence"],
+                "equipment_data": equipment_info
+            })
 
+    # 3. if all low conf
+    if len(valid_results) == 0:
+        return {
+            "status": "low_confidence",
+            "message": "Detected equipment with low confidence, try another image.",
+            "data": [config.FALLBACK_INFO]
+        }
+
+    # 4. if ok
     return {
         "status": "success",
-        "confidence": ai_result["confidence"],
-        "data": equipment_info
+        "results": valid_results  
     }
+
 
 # test
 import os

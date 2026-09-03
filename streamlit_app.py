@@ -7,6 +7,18 @@ st.set_page_config(
     page_icon="🏋️",
     layout="wide"
 )
+# a gradient view using css injection 
+gradient_bg = """
+<style>
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(135deg, #1e1e1e 0%, #434343 100%);
+}
+[data-testid="stHeader"] {
+    background: transparent;
+}
+</style>
+"""
+st.markdown(gradient_bg, unsafe_allow_html=True)
 
 # session init
 if "current_view" not in st.session_state:
@@ -48,22 +60,26 @@ if st.session_state.current_view == "upload":
 # Second Session
 #
 elif st.session_state.current_view == "result":
-    # استرجاع الداتا من الـ State
+    # get state 
     result = st.session_state.result_data
     uploaded_file = st.session_state.uploaded_image
-    data = result["data"]
+
+    # 
+    models_results = result["results"]
 
     st.markdown("<h1 style='text-align: center;'>🏋️ Detection Result</h1>", unsafe_allow_html=True)
     st.divider()
 
-    # screen devide by columns
+    # screen devide by columns -slighlty bigger-
     col1, col2 = st.columns(2)
 
     
     with col1:
         st.image(uploaded_file, caption="Uploaded Image", use_container_width=True)
-        st.success(f"Detected with {result['confidence']:.2f} confidence!")
-
+        # each model's confendence
+        for res in models_results:
+            st.success(f"🤖 Model {res['model_name'].upper()} Confidence: {res['confidence']:.2f}")
+        
         # button to get back to first session
         if st.button("⬅️ Analyze Another Image"):
             st.session_state.current_view = "upload"
@@ -73,14 +89,19 @@ elif st.session_state.current_view == "result":
 
 
     with col2:
-        st.markdown(f"### ⚙️ {data['equipment']}")
-        st.markdown(f"**💪 Primary Target Muscle:** {data['primary_muscle']}")
-        st.markdown(f"**📚 Exercise Info:** {data['academic_info']}")
-        st.link_button("🎥 Watch Exercise Video", data["video_url"])
-        if "visual" in data:
+        # get the high conf appear
+        best_result = max(models_results, key=lambda x: x['confidence'])
+        best_data = best_result["equipment_data"]
+        best_model = best_result["model_name"].upper()
+
+        st.markdown(f"### ⚙️ {best_data['equipment']} ✨ (Best Match by {best_model})")
+        st.markdown(f"**💪 Primary Target Muscle:** {best_data['primary_muscle']}")
+        st.markdown(f"**📚 Exercise Info:** {best_data['academic_info']}")
+        st.link_button("🎥 Watch Exercise Video", best_data["video_url"])
+        if "visual" in best_data:
                     # git the absolute path so every time it is located dynamically
                     base_dir = os.path.dirname(os.path.abspath(__file__))
-                    gif_path = os.path.join(base_dir, data["visual"])
+                    gif_path = os.path.join(base_dir, best_data["visual"])
                     
                     if os.path.exists(gif_path):
                         st.image(gif_path, width="content")
