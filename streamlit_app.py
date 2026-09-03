@@ -11,7 +11,8 @@ st.set_page_config(
 gradient_bg = """
 <style>
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, #1e1e1e 0%, #434343 100%);
+    
+    background: linear-gradient(135deg, #121212 0%, #262626 100%);
 }
 [data-testid="stHeader"] {
     background: transparent;
@@ -77,8 +78,9 @@ elif st.session_state.current_view == "result":
     with col1:
         st.image(uploaded_file, caption="Uploaded Image", use_container_width=True)
         # each model's confendence
-        for res in models_results:
-            st.success(f"🤖 Model {res['model_name'].upper()} Confidence: {res['confidence']:.2f}")
+        conf_texts = [f"**{res['model_name'].upper()}**: {res['confidence']:.2f}" for res in models_results]
+        combined_conf = " | ".join(conf_texts)
+        st.success(f"🤖 **Confidence** ➔ {combined_conf}")
         
         # button to get back to first session
         if st.button("⬅️ Analyze Another Image"):
