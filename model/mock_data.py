@@ -96,4 +96,11 @@ MOCK_DATABASE = {
         "video_url": "https://musclewiki.com/exercise/smith-machine-bench-press" ,
         "visual" : "model/visaulDataset/1308-WideGripSmith.gif"
     },
+    "Reg Curl Machine": {
+            "equipment": "Reg Curl Machine",
+            "primary_muscle": "Hamstrings",
+            "academic_info": "Position yourself on the pad where your feet aligns with the lifting pad , try to left without giving a momentum from your lower back",
+            "video_url": "https://musclewiki.com/exercise/machine-hamstring-curl" ,
+            "visual" : "model/visaulDataset/3195.gif"
+        },
 }
