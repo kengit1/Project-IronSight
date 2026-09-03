@@ -1,11 +1,11 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import config
+from model import config
 from app.inference import predict
-from app.utils import get_equipment_info, list_all_equipment
+from model.utils import get_equipment_info, list_all_equipment
 from app.schemas import PredictionResponse, LowConfidenceResponse, HealthResponse
-from app.mock_data import MOCK_DATABASE
+from model.mock_data import MOCK_DATABASE
 
 app = FastAPI(title="Gym Equipment API")
 

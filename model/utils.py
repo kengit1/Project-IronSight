@@ -2,8 +2,8 @@
 Helper functions shared across the API.
 """
 
-from app.mock_data import MOCK_DATABASE
-from app.config import FALLBACK_EQUIPMENT_INFO
+from model.mock_data import MOCK_DATABASE
+from model.config import FALLBACK_INFO
 
 # Pre-build a lowercase-keyed version once at import time so every
 # lookup doesn't have to rebuild the dict on every request.
@@ -18,7 +18,7 @@ def get_equipment_info(predicted_class: str) -> dict:
     or "LAT PULL DOWN" — they all resolve to the same entry.
     """
     key = predicted_class.strip().lower()
-    return _NORMALIZED_DATABASE.get(key, {**FALLBACK_EQUIPMENT_INFO, "equipment": predicted_class})
+    return _NORMALIZED_DATABASE.get(key, {**FALLBACK_INFO, "equipment": predicted_class})
 
 
 def list_all_equipment() -> list:
